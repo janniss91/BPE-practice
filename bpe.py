@@ -49,11 +49,20 @@ class BytePairEncoder:
         :param stored_token: The most common token that was recently stored.
         """
         matches = re.finditer(stored_token, self.text)
+
+        # Add combinations with the stored token in the beginning.
         new_candidates = [
-            text[match.start() : match.end() + 1]
+            text[match.start() - 1:match.end()]
             for match in matches
-            if match.end() < len(text) and " " not in text[match.start() : match.end() + 1]
+            if match.start() > 0 and " " not in text[match.start()-1:match.end()]
         ]
+        # Add combinations with the stored token in the end.
+        new_candidates.extend([
+            text[match.start():match.end() + 1]
+            for match in matches
+            if match.end() < len(text) and " " not in text[match.start():match.end() + 1]
+        ])
+        
         self.candidates.update(new_candidates)
         del self.candidates[stored_token]
 
