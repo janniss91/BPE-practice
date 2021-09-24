@@ -33,6 +33,11 @@ def counts():
     return counts
 
 
+def test_init_vocab(sample_bpe):
+    current_vocab = {"t", "s", "h", "T", "e", "i", ".", "a", "p", "x", "l", "m"}
+    assert sample_bpe.vocab == current_vocab
+
+
 def test_split_by_whitespace(sample_bpe):
     target = ["This#", "is#", "a#", "simple#", "text.#"]
     sample_split = sample_bpe._split_by_whitespace()
