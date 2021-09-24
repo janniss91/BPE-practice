@@ -1,11 +1,11 @@
 # Byte-Pair Encoding
 
 A primitive but functional implementation of the Byte-Pair encoding in Python.
-Note that the training algorithm is rather slow, however, it speeds up as pieces are merged.
+Note that the training algorithm is rather slow, however, it speeds up as pieces merge.
 
 ## Running
 
-To get a Byte-Pair encoding from your text, you must provide a single plain text file.
+To get a Byte-Pair encoding from your corpus, you must provide a single plain text file.
 
 Example:
 
