@@ -1,11 +1,9 @@
+import argparse
 from collections import Counter
-from typing import Dict
+from copy import deepcopy
 
-
-CORPUS = "This is a long text but at the moment it is not as long as it should be. In the future it will become longer and this is good. For now it is ok if it is kept as long as this."
 
 class BytePairEncoder:
-    # TODO: Merge operation needs to be refined.
     def __init__(self, corpus: str, vocab_size: int):
         """
         An implementation of the Byte-Pair Encoding.
@@ -14,10 +12,14 @@ class BytePairEncoder:
         """
         self.corpus = corpus
         self.vocab_size = vocab_size
-        self.vocab = set("".join(corpus.split()))  # Add all single symbols to the vocabulary.
+        self.initial_vocab = self._init_vocab(corpus)  # Add all single symbols to the vocabulary.
+        self.vocab = deepcopy(self.initial_vocab)
         self.current_vocab_size = len(self.vocab)
         self.current_split = self._split_by_whitespace()
         self.current_bigrams = self._get_bigrams()
+
+    def _init_vocab(self, corpus):
+        return set("".join(corpus.split()))
 
     def _split_by_whitespace(self):
         whitespace_split = self.corpus.split()
@@ -48,7 +50,7 @@ class BytePairEncoder:
         self.current_vocab_size += 1
         return most_common_token
 
-    def merge_most_common(self, most_common_bigram):
+    def merge(self, most_common_bigram):
         new_current_bigrams = []
         for token in self.current_bigrams:
             new_token = []
@@ -73,14 +75,14 @@ class BytePairEncoder:
                 else:
                     if last_mc != idx - 1:
                         new_token.append(bigram)
-            
+
             # Only keep track of the token when it has not been entirely resolved.
             if new_token:
                 new_current_bigrams.append(new_token)
 
         self.current_bigrams = new_current_bigrams
 
-    def encode(self):
+    def train(self):
         """
         Encode the text in order to obtain a vocabulary.
         """
@@ -90,19 +92,27 @@ class BytePairEncoder:
                 print("The maximum number of merges for this corpus has been reached.")
                 print("Vocabulary Size: {}".format(self.current_vocab_size))
                 break
+
             most_common = self.add_most_common(counts)
-            self.merge_most_common(most_common)
+            self.merge(most_common)
+
+            # Keep track of number of encoded pieces during vocabulary setup.
+            if self.current_vocab_size % 50 == 0:
+                print("Current vocab size: {}".format(self.current_vocab_size))
+                print("Number of pieces encoded: {}".format(self.current_vocab_size - len(self.initial_vocab)))
 
 
 if __name__ == "__main__":
-    # Example text for initial testing.
+    parser = argparse.ArgumentParser()
+    parser.add_argument("corpus_file")
+    parser.add_argument("vocab_size", type=int)
 
-    bpe = BytePairEncoder(CORPUS, 70)
-    print(bpe.current_vocab_size)
-    bpe.encode()
+    args = parser.parse_args()
+
+    with open(args.corpus_file) as corpus:
+        input_text = corpus.read()
+
+    bpe = BytePairEncoder(input_text, args.vocab_size)
+    bpe.train()
 
     print(bpe.vocab)
-    print(len(bpe.vocab))
-
-    # print(bpe.current_bigrams)
-    # print(bpe.vocab)
